@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mzumbe Voting System</title>
+    
+    <!-- ==================== UI STYLING (CSS) ==================== -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0072ff, #00c6ff);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ffffff;
+        }
+
+        .container-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
+            max-width: 450px;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 26px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #e0e0e0;
+            margin-bottom: 25px;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: #e0e0e0;
+        }
+
+        .candidate-option {
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .candidate-option:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .candidate-option input {
+            margin-right: 15px;
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #0072ff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 17px;
+            padding: 5px 0;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            margin-bottom: 15px;
+        }
+
+        /* Hidden pages by default */
+        .page {
+            display: none;
+        }
+
+        /* Active page class to toggle visibility */
+        .active-page {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-box">
+        
+        <!-- ==================== 1. STUDENT LOGIN SECTION ==================== -->
+        <div id="loginPage" class="page active-page">
+            <h2>Student Login</h2>
+            <p class="subtitle">Mzumbe Voting System</p>
+            <input type="text" id="reg_no" placeholder="Registration Number">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="handleLogin()">Login</button>
+        </div>
+
+        <!-- ==================== 2. VOTING INTERFACE SECTION ==================== -->
+        <div id="votingPage" class="page">
+            <h2>MUSO PRESIDENTIAL</h2>
+            <p class="subtitle">Please select your preferred candidate:</p>
+            
+            <div class="candidate-option" onclick="document.getElementById('c1').checked = true">
+                <input type="radio" id="c1" name="candidate" value="John Michael">
+                <label style="cursor:pointer; margin-left: 10px;"><strong>John Michael</strong> (BA-ICT)</label>
+            </div>
+
+            <div class="candidate-option" onclick="document.getElementById('c2').checked = true">
+                <input type="radio" id="c2" name="candidate" value="Amina Hassan">
+                <label style="cursor:pointer; margin-left: 10px;"><strong>Amina Hassan</strong> (BBA-Accounting)</label>
+            </div>
+
+            <div class="candidate-option" onclick="document.getElementById('c3').checked = true">
+                <input type="radio" id="c3" name="candidate" value="Peter James">
+                <label style="cursor:pointer; margin-left: 10px;"><strong>Peter James</strong> (LL.B - Law)</label>
+            </div>
+            
+            <br>
+            <button onclick="handleVote()">Submit Vote</button>
+        </div>
+
+        <!-- ==================== 3. ELECTION RESULTS SECTION ==================== -->
+        <div id="resultPage" class="page">
+            <h2>ELECTION RESULTS</h2>
+            <p class="subtitle">Current standings for MUSO Presidential:</p>
+            
+            <div class="result-row">
+                <span>John Michael:</span>
+                <span id="res-john"><strong>0 Votes</strong></span>
+            </div>
+            <hr>
+            <div class="result-row">
+                <span>Amina Hassan:</span>
+                <span id="res-amina"><strong>0 Votes</strong></span>
+            </div>
+            <hr>
+            <div class="result-row">
+                <span>Peter James:</span>
+                <span id="res-peter"><strong>0 Votes</strong></span>
+            </div>
+            
+            <br>
+            <button onclick="logout()">Go Back to Login</button>
+        </div>
+
+    </div>
+
+    <!-- ==================== SYSTEM LOGIC (JAVASCRIPT) ==================== -->
+    <script>
+        // Initialize base votes in LocalStorage if they do not exist
+        if (!localStorage.getItem("v_john")) localStorage.setItem("v_john", "142");
+        if (!localStorage.getItem("v_amina")) localStorage.setItem("v_amina", "128");
+        if (!localStorage.getItem("v_peter")) localStorage.setItem("v_peter", "85");
+
+        // 1. Handle Student Authentication
+        function handleLogin() {
+            let regNo = document.getElementById("reg_no").value.trim();
+            let pass = document.getElementById("password").value.trim();
+
+            // Validate if inputs are empty
+            if (regNo === "" || pass === "") {
+                alert("Please enter both Registration Number and Password!");
+                return;
+            }
+
+            alert("Login Successful!");
+            
+            // Switch views: Hide Login, Show Voting Page
+            document.getElementById("loginPage").classList.remove("active-page");
+            document.getElementById("votingPage").classList.add("active-page");
+        }
+
+        // 2. Process and Record the Casted Vote
+        function handleVote() {
+            let selected = document.querySelector('input[name="candidate"]:checked');
+
+            // Validate if a selection was made
+            if (!selected) {
+                alert("Please select a candidate before submitting your vote!");
+                return;
+            }
+
+            // Increment the vote count for the chosen candidate in LocalStorage
+            if (selected.value === "John Michael") {
+                let current = parseInt(localStorage.getItem("v_john")) + 1;
+                localStorage.setItem("v_john", current);
+            } else if (selected.value === "Amina Hassan") {
+                let current = parseInt(localStorage.getItem("v_amina")) + 1;
+                localStorage.setItem("v_amina", current);
+            } else if (selected.value === "Peter James") {
+                let current = parseInt(localStorage.getItem("v_peter")) + 1;
+                localStorage.setItem("v_peter", current);
+            }
+
+            alert("Thank you! Your vote for " + selected.value + " has been casted successfully.");
+
+            // Update DOM element values with the latest LocalStorage data
+            document.getElementById("res-john").innerHTML = "<strong>" + localStorage.getItem("v_john") + " Votes</strong>";
+            document.getElementById("res-amina").innerHTML = "<strong>" + localStorage.getItem("v_amina") + " Votes</strong>";
+            document.getElementById("res-peter").innerHTML = "<strong>" + localStorage.getItem("v_peter") + " Votes</strong>";
+
+            // Switch views: Hide Voting Page, Show Results Page
+            document.getElementById("votingPage").classList.remove("active-page");
+            document.getElementById("resultPage").classList.add("active-page");
+        }
+
+        // 3. Reset Fields and Navigate Back to Login Screen
+        function logout() {
+            // Clear inputs and form states
+            document.getElementById("reg_no").value = "";
+            document.getElementById("password").value = "";
+            let radio = document.querySelector('input[name="candidate"]:checked');
+            if(radio) radio.checked = false;
+
+            // Switch views: Hide Results Page, Show Login Page
+            document.getElementById("resultPage").classList.remove("active-page");
+            document.getElementById("loginPage").classList.add("active-page");
+        }
+    </script>
+</body>
+</html>
+
+
